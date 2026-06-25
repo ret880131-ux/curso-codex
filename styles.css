@@ -1,0 +1,160 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  color: #1f2937;
+  background: #eef2f7;
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.form-panel {
+  width: 100%;
+  max-width: 760px;
+  padding: 32px;
+  background: #ffffff;
+  border: 1px solid #d8dee8;
+  border-radius: 8px;
+  box-shadow: 0 16px 40px rgba(31, 41, 55, 0.12);
+}
+
+h1 {
+  margin: 0 0 24px;
+  font-size: 28px;
+  text-align: center;
+}
+
+.student-form {
+  display: grid;
+  gap: 18px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+label {
+  font-weight: 700;
+}
+
+input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 16px;
+  color: #111827;
+  border: 1px solid #b8c1d1;
+  border-radius: 6px;
+  outline: none;
+}
+
+input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+}
+
+button {
+  margin-top: 6px;
+  padding: 13px 16px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  background: #2563eb;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-button,
+.delete-button,
+.cancel-button {
+  margin-top: 0;
+  padding: 8px 10px;
+  font-size: 14px;
+}
+
+.edit-button {
+  background: #2563eb;
+}
+
+.edit-button:hover {
+  background: #1d4ed8;
+}
+
+.delete-button {
+  background: #dc2626;
+}
+
+.delete-button:hover {
+  background: #b91c1c;
+}
+
+.cancel-button {
+  background: #4b5563;
+}
+
+.cancel-button:hover {
+  background: #374151;
+}
+
+.message {
+  min-height: 24px;
+  margin: 18px 0 0;
+  font-weight: 700;
+  text-align: center;
+}
+
+.message.success {
+  color: #047857;
+}
+
+.message.error {
+  color: #b91c1c;
+}
+
+.table-container {
+  margin-top: 24px;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+caption {
+  padding-bottom: 10px;
+  font-weight: 700;
+  text-align: left;
+}
+
+th,
+td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #d8dee8;
+}
+
+th {
+  color: #111827;
+  background: #f3f6fb;
+}

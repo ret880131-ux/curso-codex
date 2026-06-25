@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Estudiantes</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="page">
+    <section class="form-panel" aria-labelledby="page-title">
+      <h1 id="page-title">Registro de estudiantes</h1>
+
+      <form id="student-form" class="student-form" novalidate>
+        <div class="field">
+          <label for="full-name">Nombre completo</label>
+          <input type="text" id="full-name" name="fullName" placeholder="Ej: Laura Martinez" required>
+        </div>
+
+        <div class="field">
+          <label for="id-number">Número de cédula</label>
+          <input type="text" id="id-number" name="idNumber" placeholder="Ej: 1020304050" required>
+        </div>
+
+        <div class="field">
+          <label for="city">Ciudad de residencia</label>
+          <input type="text" id="city" name="city" placeholder="Ej: Bogota" required>
+        </div>
+
+        <div class="field">
+          <label for="email">Correo electrónico</label>
+          <input type="email" id="email" name="email" placeholder="Ej: estudiante@correo.com" required>
+        </div>
+
+        <button type="submit">Registrar</button>
+        <button type="button" id="cancel-edit-button" class="cancel-button" hidden>Cancelar edición</button>
+      </form>
+
+      <p id="message" class="message" role="status"></p>
+
+      <div class="table-container">
+        <table>
+          <caption>Estudiantes registrados</caption>
+          <thead>
+            <tr>
+              <th>Nombre completo</th>
+              <th>Número de cédula</th>
+              <th>Ciudad de residencia</th>
+              <th>Correo electrónico</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="students-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
