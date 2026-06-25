@@ -130,6 +130,12 @@ button:hover {
   color: #b91c1c;
 }
 
+.search-field {
+  display: grid;
+  gap: 8px;
+  margin-top: 24px;
+}
+
 .table-container {
   margin-top: 24px;
   overflow-x: auto;

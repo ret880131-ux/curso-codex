@@ -1,6 +1,7 @@
 const form = document.getElementById("student-form");
 const message = document.getElementById("message");
 const studentsTableBody = document.getElementById("students-table-body");
+const studentSearch = document.getElementById("student-search");
 const submitButton = form.querySelector("button[type='submit']");
 const cancelEditButton = document.getElementById("cancel-edit-button");
 const storageKey = "registeredStudents";
@@ -70,6 +71,10 @@ cancelEditButton.addEventListener("click", function () {
   showMessage("Edición cancelada.", "success");
 });
 
+studentSearch.addEventListener("input", function () {
+  renderStudents();
+});
+
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -98,9 +103,22 @@ function hasDuplicateEmail(email) {
 
 function renderStudents() {
   studentsTableBody.innerHTML = "";
+  const searchTerm = studentSearch.value.trim().toLowerCase();
 
   students.forEach(function (student, index) {
-    addStudentRow(student, index);
+    if (matchesSearch(student, searchTerm)) {
+      addStudentRow(student, index);
+    }
+  });
+}
+
+function matchesSearch(student, searchTerm) {
+  if (!searchTerm) {
+    return true;
+  }
+
+  return [student.fullName, student.idNumber, student.city, student.email].some(function (value) {
+    return value.toLowerCase().includes(searchTerm);
   });
 }
 
