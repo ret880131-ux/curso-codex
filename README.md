@@ -2,6 +2,10 @@
 
 Proyecto web sencillo para registrar, consultar y administrar estudiantes desde el navegador. Los datos se guardan localmente usando `localStorage`.
 
+## Demo en línea
+
+[Abrir Sistema de registro de estudiantes](https://ret880131-ux.github.io/curso-codex/)
+
 ## Funcionalidades
 
 - Registrar estudiantes.
