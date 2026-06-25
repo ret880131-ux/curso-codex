@@ -136,6 +136,16 @@ button:hover {
   margin-top: 24px;
 }
 
+.table-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.table-actions button {
+  margin-top: 0;
+}
+
 .table-container {
   margin-top: 24px;
   overflow-x: auto;

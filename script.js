@@ -2,6 +2,7 @@ const form = document.getElementById("student-form");
 const message = document.getElementById("message");
 const studentsTableBody = document.getElementById("students-table-body");
 const studentSearch = document.getElementById("student-search");
+const exportCsvButton = document.getElementById("export-csv-button");
 const submitButton = form.querySelector("button[type='submit']");
 const cancelEditButton = document.getElementById("cancel-edit-button");
 const storageKey = "registeredStudents";
@@ -73,6 +74,10 @@ cancelEditButton.addEventListener("click", function () {
 
 studentSearch.addEventListener("input", function () {
   renderStudents();
+});
+
+exportCsvButton.addEventListener("click", function () {
+  exportStudentsToCsv();
 });
 
 function isValidEmail(email) {
@@ -210,4 +215,43 @@ function saveStudents() {
 function showMessage(text, type) {
   message.textContent = text;
   message.className = `message ${type}`;
+}
+
+function exportStudentsToCsv() {
+  if (students.length === 0) {
+    showMessage("No hay estudiantes registrados para exportar.", "error");
+    return;
+  }
+
+  const csvContent = createCsvContent();
+  downloadCsv(csvContent);
+  showMessage("Archivo CSV generado correctamente.", "success");
+}
+
+function createCsvContent() {
+  const headers = ["Nombre completo", "Número de cédula", "Ciudad de residencia", "Correo electrónico"];
+  const rows = students.map(function (student) {
+    return [student.fullName, student.idNumber, student.city, student.email];
+  });
+
+  return [headers].concat(rows).map(function (row) {
+    return row.map(escapeCsvValue).join(";");
+  }).join("\r\n");
+}
+
+function escapeCsvValue(value) {
+  return `"${String(value).replace(/"/g, '""')}"`;
+}
+
+function downloadCsv(csvContent) {
+  const blob = new Blob(["\uFEFF", csvContent], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const downloadLink = document.createElement("a");
+
+  downloadLink.href = url;
+  downloadLink.download = "estudiantes.csv";
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+  URL.revokeObjectURL(url);
 }
