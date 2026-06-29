@@ -203,3 +203,28 @@ th {
   color: #111827;
   background: #f3f6fb;
 }
+
+.sort-button {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  font: inherit;
+  text-align: left;
+}
+
+.sort-button:hover,
+.sort-button:focus {
+  color: #1d4ed8;
+  background: transparent;
+}
+
+.sort-indicator {
+  min-width: 12px;
+  font-size: 12px;
+}

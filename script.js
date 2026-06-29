@@ -5,6 +5,7 @@ const studentSearch = document.getElementById("student-search");
 const exportCsvButton = document.getElementById("export-csv-button");
 const importCsvInput = document.getElementById("import-csv-input");
 const importSummary = document.getElementById("import-summary");
+const sortButtons = document.querySelectorAll(".sort-button");
 const submitButton = form.querySelector("button[type='submit']");
 const cancelEditButton = document.getElementById("cancel-edit-button");
 const storageKey = "registeredStudents";
@@ -12,6 +13,10 @@ const csvHeaders = ["Nombre completo", "Número de cédula", "Ciudad de residenc
 
 let students = getStoredStudents();
 let editingIndex = null;
+let currentSort = {
+  key: "",
+  direction: "asc"
+};
 
 renderStudents();
 
@@ -94,6 +99,21 @@ importCsvInput.addEventListener("change", function () {
   importCsvInput.value = "";
 });
 
+sortButtons.forEach(function (button) {
+  button.addEventListener("click", function () {
+    const sortKey = button.dataset.sortKey;
+
+    if (currentSort.key === sortKey) {
+      currentSort.direction = currentSort.direction === "asc" ? "desc" : "asc";
+    } else {
+      currentSort.key = sortKey;
+      currentSort.direction = "asc";
+    }
+
+    renderStudents();
+  });
+});
+
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -137,11 +157,52 @@ function hasDuplicateEmailInList(email, studentList) {
 function renderStudents() {
   studentsTableBody.innerHTML = "";
   const searchTerm = studentSearch.value.trim().toLowerCase();
+  const visibleStudents = students.map(function (student, index) {
+    return {
+      student: student,
+      index: index
+    };
+  }).filter(function (entry) {
+    return matchesSearch(entry.student, searchTerm);
+  });
 
-  students.forEach(function (student, index) {
-    if (matchesSearch(student, searchTerm)) {
-      addStudentRow(student, index);
-    }
+  sortStudentEntries(visibleStudents);
+  updateSortIndicators();
+
+  visibleStudents.forEach(function (entry) {
+    addStudentRow(entry.student, entry.index);
+  });
+}
+
+function sortStudentEntries(studentEntries) {
+  if (!currentSort.key) {
+    return;
+  }
+
+  studentEntries.sort(function (firstEntry, secondEntry) {
+    const firstValue = getSortableValue(firstEntry.student, currentSort.key);
+    const secondValue = getSortableValue(secondEntry.student, currentSort.key);
+    const comparison = firstValue.localeCompare(secondValue, "es", {
+      numeric: currentSort.key === "idNumber",
+      sensitivity: "base"
+    });
+
+    return currentSort.direction === "asc" ? comparison : -comparison;
+  });
+}
+
+function getSortableValue(student, sortKey) {
+  return String(student[sortKey] || "").trim();
+}
+
+function updateSortIndicators() {
+  sortButtons.forEach(function (button) {
+    const indicator = button.querySelector(".sort-indicator");
+    const isActiveSort = button.dataset.sortKey === currentSort.key;
+
+    indicator.textContent = isActiveSort && currentSort.direction === "asc" ? "▲" : "";
+    indicator.textContent = isActiveSort && currentSort.direction === "desc" ? "▼" : indicator.textContent;
+    button.setAttribute("aria-sort", isActiveSort ? currentSort.direction : "none");
   });
 }
 
