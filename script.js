@@ -3,9 +3,12 @@ const message = document.getElementById("message");
 const studentsTableBody = document.getElementById("students-table-body");
 const studentSearch = document.getElementById("student-search");
 const exportCsvButton = document.getElementById("export-csv-button");
+const importCsvInput = document.getElementById("import-csv-input");
+const importSummary = document.getElementById("import-summary");
 const submitButton = form.querySelector("button[type='submit']");
 const cancelEditButton = document.getElementById("cancel-edit-button");
 const storageKey = "registeredStudents";
+const csvHeaders = ["Nombre completo", "Número de cédula", "Ciudad de residencia", "Correo electrónico"];
 
 let students = getStoredStudents();
 let editingIndex = null;
@@ -80,6 +83,17 @@ exportCsvButton.addEventListener("click", function () {
   exportStudentsToCsv();
 });
 
+importCsvInput.addEventListener("change", function () {
+  const file = importCsvInput.files[0];
+
+  if (!file) {
+    return;
+  }
+
+  importStudentsFromCsv(file);
+  importCsvInput.value = "";
+});
+
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -103,6 +117,20 @@ function hasDuplicateEmail(email) {
 
   return students.some(function (student, index) {
     return index !== editingIndex && student.email.toLowerCase() === normalizedEmail;
+  });
+}
+
+function hasDuplicateIdNumberInList(idNumber, studentList) {
+  return studentList.some(function (student) {
+    return normalizeIdNumber(student.idNumber) === idNumber;
+  });
+}
+
+function hasDuplicateEmailInList(email, studentList) {
+  const normalizedEmail = email.toLowerCase();
+
+  return studentList.some(function (student) {
+    return student.email.toLowerCase() === normalizedEmail;
   });
 }
 
@@ -217,6 +245,214 @@ function showMessage(text, type) {
   message.className = `message ${type}`;
 }
 
+function importStudentsFromCsv(file) {
+  const reader = new FileReader();
+
+  reader.onload = function (event) {
+    try {
+      const result = processCsvImport(event.target.result);
+
+      if (result.importedStudents.length > 0) {
+        students = students.concat(result.importedStudents);
+        saveStudents();
+        renderStudents();
+        resetEditMode();
+        form.reset();
+      }
+
+      showMessage("Importación CSV finalizada.", result.importedStudents.length > 0 ? "success" : "error");
+      showImportSummary(result);
+    } catch (error) {
+      showMessage(error.message, "error");
+      clearImportSummary();
+    }
+  };
+
+  reader.onerror = function () {
+    showMessage("No se pudo leer el archivo CSV.", "error");
+    clearImportSummary();
+  };
+
+  reader.readAsText(file, "UTF-8");
+}
+
+function processCsvImport(csvText) {
+  const rows = parseCsvRows(csvText.replace(/^\uFEFF/, ""));
+
+  if (rows.length === 0 || rows.every(function (row) {
+    return row.every(function (value) {
+      return value.trim() === "";
+    });
+  })) {
+    throw new Error("El archivo CSV está vacío.");
+  }
+
+  const headerMap = getHeaderMap(rows[0]);
+
+  if (!headerMap) {
+    throw new Error("El CSV debe incluir las columnas: " + csvHeaders.join("; ") + ".");
+  }
+
+  const importedStudents = [];
+  const rejectedRows = [];
+
+  rows.slice(1).forEach(function (row, rowIndex) {
+    const rowNumber = rowIndex + 2;
+
+    if (row.length === 1 && row[0].trim() === "") {
+      return;
+    }
+
+    const student = {
+      fullName: getCsvValue(row, headerMap.fullName),
+      idNumber: normalizeIdNumber(getCsvValue(row, headerMap.idNumber)),
+      city: getCsvValue(row, headerMap.city),
+      email: getCsvValue(row, headerMap.email)
+    };
+    const rejectionReason = getCsvStudentRejectionReason(student, importedStudents);
+
+    if (rejectionReason) {
+      rejectedRows.push({
+        rowNumber: rowNumber,
+        reason: rejectionReason
+      });
+      return;
+    }
+
+    importedStudents.push(student);
+  });
+
+  return {
+    importedStudents: importedStudents,
+    rejectedRows: rejectedRows
+  };
+}
+
+function parseCsvRows(csvText) {
+  const rows = [];
+  let currentRow = [];
+  let currentValue = "";
+  let insideQuotes = false;
+
+  for (let index = 0; index < csvText.length; index++) {
+    const character = csvText[index];
+    const nextCharacter = csvText[index + 1];
+
+    if (character === '"') {
+      if (insideQuotes && nextCharacter === '"') {
+        currentValue += '"';
+        index++;
+      } else {
+        insideQuotes = !insideQuotes;
+      }
+    } else if (character === ";" && !insideQuotes) {
+      currentRow.push(currentValue);
+      currentValue = "";
+    } else if ((character === "\n" || character === "\r") && !insideQuotes) {
+      if (character === "\r" && nextCharacter === "\n") {
+        index++;
+      }
+
+      currentRow.push(currentValue);
+      rows.push(currentRow);
+      currentRow = [];
+      currentValue = "";
+    } else {
+      currentValue += character;
+    }
+  }
+
+  if (currentValue !== "" || currentRow.length > 0) {
+    currentRow.push(currentValue);
+    rows.push(currentRow);
+  }
+
+  return rows;
+}
+
+function getHeaderMap(headerRow) {
+  const normalizedHeaders = headerRow.map(function (header) {
+    return normalizeCsvHeader(header);
+  });
+  const requiredHeaders = {
+    fullName: "nombre completo",
+    idNumber: "numero de cedula",
+    city: "ciudad de residencia",
+    email: "correo electronico"
+  };
+  const headerMap = {};
+
+  Object.keys(requiredHeaders).forEach(function (key) {
+    headerMap[key] = normalizedHeaders.indexOf(requiredHeaders[key]);
+  });
+
+  if (Object.keys(headerMap).some(function (key) {
+    return headerMap[key] === -1;
+  })) {
+    return null;
+  }
+
+  return headerMap;
+}
+
+function normalizeCsvHeader(value) {
+  return value.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function getCsvValue(row, index) {
+  return (row[index] || "").trim();
+}
+
+function getCsvStudentRejectionReason(student, importedStudents) {
+  if (!student.fullName || !student.idNumber || !student.city || !student.email) {
+    return "Campos vacíos";
+  }
+
+  if (!isValidIdNumber(student.idNumber)) {
+    return "Número de cédula inválido";
+  }
+
+  if (!isValidEmail(student.email)) {
+    return "Correo electrónico inválido";
+  }
+
+  if (hasDuplicateIdNumberInList(student.idNumber, students) || hasDuplicateIdNumberInList(student.idNumber, importedStudents)) {
+    return "Número de cédula duplicado";
+  }
+
+  if (hasDuplicateEmailInList(student.email, students) || hasDuplicateEmailInList(student.email, importedStudents)) {
+    return "Correo electrónico duplicado";
+  }
+
+  return "";
+}
+
+function showImportSummary(result) {
+  importSummary.innerHTML = "";
+  importSummary.hidden = false;
+
+  const title = document.createElement("p");
+  title.textContent = `Registros importados: ${result.importedStudents.length}. Registros rechazados: ${result.rejectedRows.length}.`;
+  importSummary.appendChild(title);
+
+  if (result.rejectedRows.length > 0) {
+    const list = document.createElement("ul");
+
+    result.rejectedRows.forEach(function (rejectedRow) {
+      const item = document.createElement("li");
+      item.textContent = `Fila ${rejectedRow.rowNumber}: ${rejectedRow.reason}.`;
+      list.appendChild(item);
+    });
+
+    importSummary.appendChild(list);
+  }
+}
+
+function clearImportSummary() {
+  importSummary.innerHTML = "";
+  importSummary.hidden = true;
+}
+
 function exportStudentsToCsv() {
   if (students.length === 0) {
     showMessage("No hay estudiantes registrados para exportar.", "error");
@@ -229,7 +465,7 @@ function exportStudentsToCsv() {
 }
 
 function createCsvContent() {
-  const headers = ["Nombre completo", "Número de cédula", "Ciudad de residencia", "Correo electrónico"];
+  const headers = csvHeaders;
   const rows = students.map(function (student) {
     return [student.fullName, student.idNumber, student.city, student.email];
   });

@@ -37,6 +37,7 @@
       </form>
 
       <p id="message" class="message" role="status"></p>
+      <div id="import-summary" class="import-summary" aria-live="polite" hidden></div>
 
       <div class="search-field">
         <label for="student-search">Buscar estudiante</label>
@@ -44,6 +45,8 @@
       </div>
 
       <div class="table-actions">
+        <label for="import-csv-input" class="import-csv-button">Importar CSV</label>
+        <input type="file" id="import-csv-input" accept=".csv,text/csv" hidden>
         <button type="button" id="export-csv-button">Exportar CSV</button>
       </div>
 
