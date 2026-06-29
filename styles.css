@@ -83,6 +83,15 @@ button:hover,
   background: #1d4ed8;
 }
 
+button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+button:disabled:hover {
+  background: #9ca3af;
+}
+
 .actions-cell {
   display: flex;
   gap: 8px;
@@ -178,6 +187,24 @@ button:hover,
 .table-container {
   margin-top: 24px;
   overflow-x: auto;
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.pagination button {
+  margin-top: 0;
+}
+
+.pagination span {
+  font-weight: 700;
+  color: #374151;
 }
 
 table {

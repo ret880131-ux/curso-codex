@@ -6,13 +6,18 @@ const exportCsvButton = document.getElementById("export-csv-button");
 const importCsvInput = document.getElementById("import-csv-input");
 const importSummary = document.getElementById("import-summary");
 const sortButtons = document.querySelectorAll(".sort-button");
+const previousPageButton = document.getElementById("previous-page-button");
+const nextPageButton = document.getElementById("next-page-button");
+const pageInfo = document.getElementById("page-info");
 const submitButton = form.querySelector("button[type='submit']");
 const cancelEditButton = document.getElementById("cancel-edit-button");
 const storageKey = "registeredStudents";
 const csvHeaders = ["Nombre completo", "Número de cédula", "Ciudad de residencia", "Correo electrónico"];
+const studentsPerPage = 5;
 
 let students = getStoredStudents();
 let editingIndex = null;
+let currentPage = 1;
 let currentSort = {
   key: "",
   direction: "asc"
@@ -81,6 +86,7 @@ cancelEditButton.addEventListener("click", function () {
 });
 
 studentSearch.addEventListener("input", function () {
+  currentPage = 1;
   renderStudents();
 });
 
@@ -110,8 +116,21 @@ sortButtons.forEach(function (button) {
       currentSort.direction = "asc";
     }
 
+    currentPage = 1;
     renderStudents();
   });
+});
+
+previousPageButton.addEventListener("click", function () {
+  if (currentPage > 1) {
+    currentPage--;
+    renderStudents();
+  }
+});
+
+nextPageButton.addEventListener("click", function () {
+  currentPage++;
+  renderStudents();
 });
 
 function isValidEmail(email) {
@@ -167,11 +186,34 @@ function renderStudents() {
   });
 
   sortStudentEntries(visibleStudents);
-  updateSortIndicators();
+  const totalPages = getTotalPages(visibleStudents.length);
+  currentPage = Math.min(currentPage, totalPages);
+  currentPage = Math.max(currentPage, 1);
+  const paginatedStudents = getPaginatedStudents(visibleStudents);
 
-  visibleStudents.forEach(function (entry) {
+  updateSortIndicators();
+  updatePagination(totalPages);
+
+  paginatedStudents.forEach(function (entry) {
     addStudentRow(entry.student, entry.index);
   });
+}
+
+function getTotalPages(totalStudents) {
+  return Math.max(Math.ceil(totalStudents / studentsPerPage), 1);
+}
+
+function getPaginatedStudents(studentEntries) {
+  const startIndex = (currentPage - 1) * studentsPerPage;
+  const endIndex = startIndex + studentsPerPage;
+
+  return studentEntries.slice(startIndex, endIndex);
+}
+
+function updatePagination(totalPages) {
+  pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
+  previousPageButton.disabled = currentPage === 1;
+  nextPageButton.disabled = currentPage === totalPages;
 }
 
 function sortStudentEntries(studentEntries) {
